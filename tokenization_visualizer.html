@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tokenization Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .input-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .tokenizers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .tokenizer-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .tokenizer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .tokenizer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .tokenizer-name {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .token-count {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .tokens-container {
+            min-height: 100px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-items: flex-start;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed #e0e0e0;
+        }
+
+        .token {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            animation: tokenAppear 0.5s ease-out;
+            transition: transform 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .token:hover {
+            transform: scale(1.05);
+        }
+
+        .token::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes tokenAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .tokenizer-info {
+            margin-top: 15px;
+            padding: 12px;
+            background: #f0f2f5;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .comparison-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .comparison-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .explanation-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .explanation-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .explanation-content {
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Tokenization Visualizer</h1>
+            <p>Explore how different LLMs break down text into tokens</p>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="textInput">Enter your text to tokenize:</label>
+                <textarea id="textInput" placeholder="Type or paste any text here... Try phrases like 'Hello world', 'What is the meaning of life?', or something more complex!">Hello world! This is a demonstration of how different tokenizers work.</textarea>
+            </div>
+        </div>
+
+        <div class="tokenizers-grid" id="tokenizersGrid">
+            <!-- Tokenizer cards will be populated by JavaScript -->
+        </div>
+
+        <div class="comparison-section">
+            <h3 class="comparison-title">📊 Tokenization Comparison</h3>
+            <div class="stats-grid" id="statsGrid">
+                <!-- Stats will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="explanation-section">
+            <h3 class="explanation-title">🔍 Understanding Tokenization</h3>
+            <div class="explanation-content">
+                <p><strong>Tokenization</strong> is the process of breaking down text into smaller units called <span class="highlight">tokens</span>. Different AI models use different strategies:</p>
+                
+                <p><strong>Word-based:</strong> Splits on spaces and punctuation. Simple but creates huge vocabularies.</p>
+                
+                <p><strong>Subword-based:</strong> Breaks words into smaller meaningful parts. More efficient and handles unknown words better.</p>
+                
+                <p><strong>Character-based:</strong> Uses individual characters. Very fine-grained but requires longer sequences.</p>
+                
+                <p>Modern LLMs like GPT, Claude, and LLaMA use sophisticated subword algorithms like <span class="highlight">Byte Pair Encoding (BPE)</span> and <span class="highlight">SentencePiece</span> to balance vocabulary size with meaningful representation.</p>
+                
+                <p><strong>Why this matters:</strong> Token count affects API costs, context limits, and model performance. Understanding tokenization helps optimize your AI applications!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tokenizers = [
+            {
+                name: 'GPT-4 (tiktoken)',
+                description: 'Uses cl100k_base encoding with ~100k vocabulary',
+                algorithm: 'BPE with special tokens',
+                simulate: (text) => simulateGPTTokenizer(text)
+            },
+            {
+                name: 'Claude (Anthropic)',
+                description: 'Custom tokenizer optimized for reasoning',
+                algorithm: 'Modified BPE with safety tokens',
+                simulate: (text) => simulateClaudeTokenizer(text)
+            },
+            {
+                name: 'LLaMA (SentencePiece)',
+                description: 'Uses SentencePiece with 32k vocabulary',
+                algorithm: 'Unigram language model',
+                simulate: (text) => simulateLlamaTokenizer(text)
+            },
+            {
+                name: 'BERT (WordPiece)',
+                description: 'WordPiece tokenization with [CLS], [SEP]',
+                algorithm: 'WordPiece with special tokens',
+                simulate: (text) => simulateBertTokenizer(text)
+            }
+        ];
+
+        function simulateGPTTokenizer(text) {
+            // Simulate GPT-4's tiktoken behavior
+            const tokens = [];
+            const words = text.split(/(\s+|[^\w\s])/);
+            
+            for (let word of words) {
+                if (word.trim() === '') continue;
+                
+                if (word.match(/^\s+$/)) {
+                    // Handle whitespace
+                    continue;
+                } else if (word.match(/^[^\w\s]$/)) {
+                    // Punctuation as separate token
+                    tokens.push(word);
+                } else if (word.length <= 4) {
+                    // Short words as single tokens
+                    tokens.push(word);
+                } else {
+                    // Longer words split into subwords
+                    const subwords = splitIntoSubwords(word, 3);
+                    tokens.push(...subwords);
+                }
+            }
+            
+            return tokens.filter(t => t.length > 0);
+        }
+
+        function simulateClaudeTokenizer(text) {
+            // Simulate Claude's tokenizer (slightly different splitting)
+            const tokens = [];
+            const words = text.split(/(\s+|[^\w\s])/);
+            
+            for (let word of words) {
+                if (word.trim() === '') continue;
+                
+                if (word.match(/^\s+$/)) {
+                    continue;
+                } else if (word.match(/^[^\w\s]$/)) {
+                    tokens.push(word);
+                } else if (word.length <= 3) {
+                    tokens.push(word);
+                } else {
+                    // Claude tends to create slightly larger subword tokens
+                    const subwords = splitIntoSubwords(word, 4);
+                    tokens.push(...subwords);
+                }
+            }
+            
+            return tokens.filter(t => t.length > 0);
+        }
+
+        function simulateLlamaTokenizer(text) {
+            // Simulate LLaMA's SentencePiece behavior
+            const tokens = [];
+            // SentencePiece often preserves spaces as part of tokens
+            const words = text.split(/([^\w\s])/);
+            
+            for (let word of words) {
+                if (word.trim() === '') continue;
+                
+                if (word.match(/^[^\w\s]$/)) {
+                    tokens.push(word);
+                } else if (word.length <= 5) {
+                    tokens.push(word);
+                } else {
+                    // SentencePiece creates different subword boundaries
+                    const subwords = splitIntoSubwords(word, 2);
+                    tokens.push(...subwords);
+                }
+            }
+            
+            return tokens.filter(t => t.length > 0);
+        }
+
+        function simulateBertTokenizer(text) {
+            // Simulate BERT's WordPiece tokenizer
+            const tokens = ['[CLS]']; // BERT starts with CLS token
+            const words = text.split(/(\s+|[^\w\s])/);
+            
+            for (let word of words) {
+                if (word.trim() === '') continue;
+                
+                if (word.match(/^\s+$/)) {
+                    continue;
+                } else if (word.match(/^[^\w\s]$/)) {
+                    tokens.push(word);
+                } else if (word.length <= 4) {
+                    tokens.push(word);
+                } else {
+                    // WordPiece uses ## prefix for continuation
+                    const subwords = splitIntoSubwords(word, 3);
+                    tokens.push(subwords[0]);
+                    for (let i = 1; i < subwords.length; i++) {
+                        tokens.push('##' + subwords[i]);
+                    }
+                }
+            }
+            
+            tokens.push('[SEP]'); // BERT ends with SEP token
+            return tokens.filter(t => t.length > 0);
+        }
+
+        function splitIntoSubwords(word, avgLength) {
+            const subwords = [];
+            let current = '';
+            
+            for (let i = 0; i < word.length; i++) {
+                current += word[i];
+                if (current.length >= avgLength || i === word.length - 1) {
+                    subwords.push(current);
+                    current = '';
+                }
+            }
+            
+            return subwords.filter(s => s.length > 0);
+        }
+
+        function createTokenElement(token, delay = 0) {
+            const tokenEl = document.createElement('div');
+            tokenEl.className = 'token';
+            tokenEl.textContent = token;
+            tokenEl.style.animationDelay = `${delay}ms`;
+            return tokenEl;
+        }
+
+        function renderTokenizer(tokenizer, index) {
+            const card = document.createElement('div');
+            card.className = 'tokenizer-card';
+            
+            const text = document.getElementById('textInput').value || 'Hello world!';
+            const tokens = tokenizer.simulate(text);
+            
+            card.innerHTML = `
+                <div class="tokenizer-header">
+                    <div class="tokenizer-name">${tokenizer.name}</div>
+                    <div class="token-count">${tokens.length} tokens</div>
+                </div>
+                <div class="tokens-container" id="tokens-${index}">
+                    <div class="loading"></div>
+                </div>
+                <div class="tokenizer-info">
+                    <strong>${tokenizer.algorithm}</strong><br>
+                    ${tokenizer.description}
+                </div>
+            `;
+            
+            // Animate token appearance
+            setTimeout(() => {
+                const container = card.querySelector(`#tokens-${index}`);
+                container.innerHTML = '';
+                
+                tokens.forEach((token, tokenIndex) => {
+                    setTimeout(() => {
+                        const tokenEl = createTokenElement(token);
+                        container.appendChild(tokenEl);
+                    }, tokenIndex * 100);
+                });
+            }, 500);
+            
+            return card;
+        }
+
+        function updateVisualization() {
+            const grid = document.getElementById('tokenizersGrid');
+            const statsGrid = document.getElementById('statsGrid');
+            const text = document.getElementById('textInput').value || 'Hello world!';
+            
+            // Clear existing content
+            grid.innerHTML = '';
+            statsGrid.innerHTML = '';
+            
+            // Render tokenizers
+            const tokenCounts = [];
+            tokenizers.forEach((tokenizer, index) => {
+                const card = renderTokenizer(tokenizer, index);
+                grid.appendChild(card);
+                
+                const tokens = tokenizer.simulate(text);
+                tokenCounts.push({
+                    name: tokenizer.name.split(' ')[0],
+                    count: tokens.length
+                });
+            });
+            
+            // Update statistics
+            setTimeout(() => {
+                const maxTokens = Math.max(...tokenCounts.map(t => t.count));
+                const minTokens = Math.min(...tokenCounts.map(t => t.count));
+                const avgTokens = Math.round(tokenCounts.reduce((sum, t) => sum + t.count, 0) / tokenCounts.length);
+                const variance = Math.round((maxTokens - minTokens) / minTokens * 100);
+                
+                const stats = [
+                    { label: 'Characters', value: text.length },
+                    { label: 'Average Tokens', value: avgTokens },
+                    { label: 'Min Tokens', value: minTokens },
+                    { label: 'Max Tokens', value: maxTokens },
+                    { label: 'Variance', value: `${variance}%` }
+                ];
+                
+                stats.forEach(stat => {
+                    const statCard = document.createElement('div');
+                    statCard.className = 'stat-card';
+                    statCard.innerHTML = `
+                        <div class="stat-value">${stat.value}</div>
+                        <div class="stat-label">${stat.label}</div>
+                    `;
+                    statsGrid.appendChild(statCard);
+                });
+            }, 1500);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateVisualization();
+            
+            document.getElementById('textInput').addEventListener('input', () => {
+                clearTimeout(window.updateTimeout);
+                window.updateTimeout = setTimeout(updateVisualization, 1000);
+            });
+        });
+    </script>
+</body>
+</html>
